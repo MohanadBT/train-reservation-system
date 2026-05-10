@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Reports - Admin{% endblock %}
+
+{% block extra_styles %}
+<style>
+  .layout { min-height: 100vh; display: grid; grid-template-columns: 240px 1fr; }
+  .sidebar { background: linear-gradient(180deg, #0f172a, #1e293b); color: #e2e8f0; padding: 26px 20px; }
+  .brand { font-size: 21px; margin-bottom: 22px; font-weight: bold; }
+  .sidebar a { display: block; color: #cbd5e1; text-decoration: none; padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; transition: 0.2s; }
+  .sidebar a:hover, .sidebar a.active { background: #334155; color: #fff; }
+  .content { padding: 24px; }
+  .topbar { background: #fff; border-radius: 12px; padding: 15px 18px; box-shadow: 0 8px 22px rgba(15,23,42,0.08); margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 18px; }
+  .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 8px 20px rgba(15,23,42,0.08); }
+  .card h3 { font-size: 14px; color: #475569; margin-bottom: 6px; }
+  .value { font-size: 30px; font-weight: bold; color: #0f172a; }
+  .panel { background: #fff; border-radius: 12px; padding: 18px; box-shadow: 0 8px 20px rgba(15,23,42,0.08); }
+  .panel h2 { margin-bottom: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid #e2e8f0; }
+  th { color: #475569; }
+  .badge { padding: 3px 8px; border-radius: 999px; font-size: 12px; }
+  .badge.confirmed { background: #d1fae5; color: #065f46; }
+  .badge.cancelled { background: #fee2e2; color: #991b1b; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">Railway Admin</div>
+    <a href="/admin/dashboard">Dashboard</a>
+    <a href="/admin/schedules">Train Schedules</a>
+    <a href="/admin/passengers">Passenger Records</a>
+    <a href="/admin/reservations">Reservations</a>
+    <a href="/admin/reports" class="active">Revenue Reports</a>
+    <a href="/admin/staff">Staff Management</a>
+    <a href="/logout">Logout</a>
+  </aside>
+
+  <main class="content">
+    <div class="topbar">
+      <h1>Reports & Analytics</h1>
+      <span style="font-size:14px;color:#64748b;">{{ full_name }}</span>
+    </div>
+
+    <section class="cards">
+      <article class="card">
+        <h3>Total Trains</h3>
+        <p class="value">{{ stats.total_trains }}</p>
+      </article>
+      <article class="card">
+        <h3>Total Bookings</h3>
+        <p class="value">{{ stats.total_bookings }}</p>
+      </article>
+      <article class="card">
+        <h3>Occupancy Rate</h3>
+        <p class="value">{{ stats.occupancy_rate }}</p>
+      </article>
+      <article class="card">
+        <h3>Total Revenue</h3>
+        <p class="value">${{ "%.2f"|format(revenue) }}</p>
+      </article>
+    </section>
+
+    <section class="panel">
+      <h2>Full Reservation Log</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Ref</th>
+            <th>Passenger</th>
+            <th>Train</th>
+            <th>Route</th>
+            <th>Class</th>
+            <th>Status</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in reservations %}
+          <tr>
+            <td>{{ r.booking_reference }}</td>
+            <td>{{ r.passenger_name }}</td>
+            <td>{{ r.train_number }}</td>
+            <td>{{ r.route }}</td>
+            <td>{{ r.seat_class }}</td>
+            <td><span class="badge {{ r.status }}">{{ r.status }}</span></td>
+            <td>{{ (r.created_at or '')[:10] }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" style="color:#94a3b8;">No records.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  </main>
+</div>
+{% endblock %}

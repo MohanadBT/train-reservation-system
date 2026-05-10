@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Reservations - Admin{% endblock %}
+
+{% block extra_styles %}
+<style>
+  .layout { min-height: 100vh; display: grid; grid-template-columns: 240px 1fr; }
+  .sidebar { background: linear-gradient(180deg, #0f172a, #1e293b); color: #e2e8f0; padding: 26px 20px; }
+  .brand { font-size: 21px; margin-bottom: 22px; font-weight: bold; }
+  .sidebar a { display: block; color: #cbd5e1; text-decoration: none; padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; transition: 0.2s; }
+  .sidebar a:hover, .sidebar a.active { background: #334155; color: #fff; }
+  .content { padding: 24px; }
+  .topbar { background: #fff; border-radius: 12px; padding: 15px 18px; box-shadow: 0 8px 22px rgba(15,23,42,0.08); margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; }
+  .panel { background: #fff; border-radius: 12px; padding: 18px; box-shadow: 0 8px 20px rgba(15,23,42,0.08); }
+  .panel h2 { margin-bottom: 14px; font-size: 19px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid #e2e8f0; }
+  th { color: #475569; }
+  .badge { padding: 3px 8px; border-radius: 999px; font-size: 12px; }
+  .badge.confirmed { background: #d1fae5; color: #065f46; }
+  .badge.cancelled { background: #fee2e2; color: #991b1b; }
+  .btn { border: none; border-radius: 8px; padding: 5px 10px; font-size: 12px; cursor: pointer; color: #fff; background: #dc2626; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">Railway Admin</div>
+    <a href="/admin/dashboard">Dashboard</a>
+    <a href="/admin/schedules">Train Schedules</a>
+    <a href="/admin/passengers">Passenger Records</a>
+    <a href="/admin/reservations" class="active">Reservations</a>
+    <a href="/admin/reports">Revenue Reports</a>
+    <a href="/admin/staff">Staff Management</a>
+    <a href="/logout">Logout</a>
+  </aside>
+
+  <main class="content">
+    <div class="topbar">
+      <h1>All Reservations</h1>
+      <span style="font-size:14px;color:#64748b;">{{ full_name }}</span>
+    </div>
+
+    <section class="panel">
+      <h2>Reservation Records ({{ reservations|length }})</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Ref</th>
+            <th>Passenger</th>
+            <th>Train</th>
+            <th>Route</th>
+            <th>Class</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in reservations %}
+          <tr>
+            <td><strong>{{ r.booking_reference }}</strong></td>
+            <td>{{ r.passenger_name }}</td>
+            <td>{{ r.train_number }}</td>
+            <td>{{ r.route }}</td>
+            <td>{{ r.seat_class }}</td>
+            <td><span class="badge {{ r.status }}">{{ r.status }}</span></td>
+            <td>{{ (r.created_at or '')[:10] }}</td>
+            <td>
+              {% if r.status == 'confirmed' %}
+              <form method="POST" action="/staff/cancel/{{ r.id }}">
+                <button class="btn" type="submit">Cancel</button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="8" style="color:#94a3b8;">No reservations yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  </main>
+</div>
+{% endblock %}

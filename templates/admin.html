@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard - Train Reservation System{% endblock %}
+
+{% block extra_styles %}
+<style>
+  .layout { min-height: 100vh; display: grid; grid-template-columns: 240px 1fr; }
+  .sidebar { background: linear-gradient(180deg, #0f172a, #1e293b); color: #e2e8f0; padding: 26px 20px; }
+  .brand { font-size: 21px; margin-bottom: 22px; font-weight: bold; }
+  .sidebar a { display: block; color: #cbd5e1; text-decoration: none; padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; transition: 0.2s; }
+  .sidebar a:hover { background: #334155; color: #ffffff; }
+  .content { padding: 24px; }
+  .topbar { background: #fff; border-radius: 12px; padding: 15px 18px; box-shadow: 0 8px 22px rgba(15,23,42,0.08); margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; }
+  .role { background: #dbeafe; color: #1d4ed8; padding: 6px 10px; border-radius: 999px; font-size: 13px; font-weight: bold; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 16px; }
+  .card { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 8px 20px rgba(15,23,42,0.08); }
+  .card h3 { color: #475569; font-size: 14px; margin-bottom: 8px; }
+  .value { font-size: 28px; font-weight: bold; color: #0f172a; }
+  .panel { background: #fff; border-radius: 12px; padding: 18px; box-shadow: 0 8px 20px rgba(15,23,42,0.08); margin-top: 14px; }
+  .panel h2 { margin-bottom: 8px; font-size: 21px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid #e2e8f0; }
+  th { color: #475569; }
+  .actions { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn { border: none; border-radius: 8px; padding: 10px 14px; font-size: 14px; cursor: pointer; color: #fff; background: #2563eb; text-decoration: none; display: inline-block; }
+  .btn.secondary { background: #0f766e; }
+  .badge-active { background: #d1fae5; color: #065f46; padding: 3px 8px; border-radius: 999px; font-size: 12px; }
+  .badge-cancelled { background: #fee2e2; color: #991b1b; padding: 3px 8px; border-radius: 999px; font-size: 12px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">Railway Admin</div>
+    <a href="/admin/dashboard">Dashboard</a>
+    <a href="/admin/schedules">Train Schedules</a>
+    <a href="/admin/passengers">Passenger Records</a>
+    <a href="/admin/reservations">Reservations</a>
+    <a href="/admin/reports">Revenue Reports</a>
+    <a href="/admin/staff">Staff Management</a>
+    <a href="/logout">Logout</a>
+  </aside>
+
+  <main class="content">
+    <div class="topbar">
+      <h1>Administrative Dashboard</h1>
+      <span class="role">Administrator — {{ full_name }}</span>
+    </div>
+
+    <!-- Stats from database -->
+    <section class="cards">
+      <article class="card">
+        <h3>Total Trains</h3>
+        <p class="value">{{ stats.total_trains }}</p>
+      </article>
+      <article class="card">
+        <h3>Total Bookings</h3>
+        <p class="value">{{ stats.total_bookings }}</p>
+      </article>
+      <article class="card">
+        <h3>Occupancy Rate</h3>
+        <p class="value">{{ stats.occupancy_rate }}</p>
+      </article>
+      <article class="card">
+        <h3>Total Revenue</h3>
+        <p class="value">{{ stats.monthly_revenue }}</p>
+      </article>
+    </section>
+
+    <section class="panel">
+      <h2>Upcoming Schedule Updates</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Train</th>
+            <th>Route</th>
+            <th>Departure</th>
+            <th>Seats Left</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in schedules %}
+          <tr>
+            <td>{{ s.train_number }}</td>
+            <td>{{ s.route }}</td>
+            <td>{{ s.departure_time }}</td>
+            <td>{{ s.available_seats }}</td>
+            <td><span class="badge-{{ s.status }}">{{ s.status }}</span></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" style="color:#94a3b8;">No schedules found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <div class="actions">
+        <a href="/admin/schedules" class="btn">Manage Schedules</a>
+        <a href="/admin/reports" class="btn secondary">Generate Report</a>
+      </div>
+    </section>
+  </main>
+</div>
+{% endblock %}

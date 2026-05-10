@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}Staff Dashboard - Train Reservation System{% endblock %}
+
+{% block extra_styles %}
+<style>
+  body { padding: 20px; background: #f8fafc; }
+  .header { background: linear-gradient(130deg, #0f766e, #0e7490); color: #ecfeff; border-radius: 14px; padding: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 24px rgba(15,118,110,0.2); }
+  .role { font-size: 13px; font-weight: bold; background: rgba(255,255,255,0.16); padding: 6px 10px; border-radius: 999px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 16px; }
+  .card { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 8px 20px rgba(15,23,42,0.08); }
+  .card h3 { font-size: 15px; color: #475569; margin-bottom: 8px; }
+  .value { font-size: 26px; font-weight: bold; }
+  .panel { margin-top: 16px; background: #fff; border-radius: 12px; padding: 18px; box-shadow: 0 8px 20px rgba(15,23,42,0.08); }
+  .panel h2 { margin-bottom: 12px; }
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  label { display: block; margin-bottom: 6px; font-weight: bold; font-size: 14px; color: #334155; }
+  input, select { width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 11px; font-size: 14px; outline: none; }
+  input:focus, select:focus { border-color: #0f766e; box-shadow: 0 0 0 3px rgba(15,118,110,0.14); }
+  .actions { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn { border: none; border-radius: 8px; padding: 10px 14px; font-size: 14px; cursor: pointer; color: #fff; background: #0f766e; }
+  .btn.cancel-btn { background: #dc2626; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid #e2e8f0; }
+  th { color: #475569; }
+  .badge { padding: 3px 8px; border-radius: 999px; font-size: 12px; }
+  .badge.confirmed { background: #d1fae5; color: #065f46; }
+  .badge.cancelled { background: #fee2e2; color: #991b1b; }
+  .link-row { margin-top: 14px; }
+  .link-row a { color: #0e7490; text-decoration: none; font-weight: bold; }
+</style>
+{% endblock %}
+
+{% block content %}
+<header class="header">
+  <div>
+    <h1>Staff Operations Dashboard</h1>
+    <p>Manage reservations and live seat availability</p>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <span style="font-size:14px;">{{ full_name }}</span>
+    <span class="role">{{ role | capitalize }}</span>
+    <a href="/logout" style="color:#99f6e4;font-size:13px;text-decoration:none;">Logout</a>
+  </div>
+</header>
+
+<!-- Live stats from DB -->
+<section class="grid">
+  <article class="card">
+    <h3>Bookings Today</h3>
+    <p class="value">{{ stats.bookings_today }}</p>
+  </article>
+  <article class="card">
+    <h3>Available Seats</h3>
+    <p class="value">{{ stats.available_seats_total }}</p>
+  </article>
+  <article class="card">
+    <h3>Cancellations Today</h3>
+    <p class="value">{{ stats.cancellations_today }}</p>
+  </article>
+</section>
+
+<!-- Quick Reservation Form -->
+<section class="panel">
+  <h2>Quick Reservation Form</h2>
+  <form method="POST" action="/staff/reserve">
+    <div class="form-grid">
+      <div>
+        <label for="passenger_id">Passenger</label>
+        <select id="passenger_id" name="passenger_id" required>
+          <option value="">-- Select Passenger --</option>
+          {% for p in passengers %}
+          <option value="{{ p.id }}">{{ p.full_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="schedule_id">Train / Route</label>
+        <select id="schedule_id" name="schedule_id" required>
+          <option value="">-- Select Schedule --</option>
+          {% for s in schedules %}
+          <option value="{{ s.id }}">{{ s.train_number }} | {{ s.route }} | {{ s.departure_time[:16] }} | {{ s.available_seats }} seats</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="seat_class">Seat Class</label>
+        <select id="seat_class" name="seat_class">
+          <option>Economy</option>
+          <option>Business</option>
+          <option>First Class</option>
+        </select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn" type="submit">Confirm Booking</button>
+    </div>
+  </form>
+  <div class="link-row">
+    {% if role == 'admin' %}
+    <a href="/admin/dashboard">← Admin Dashboard</a>
+    {% endif %}
+  </div>
+</section>
+
+<!-- Recent reservations table -->
+<section class="panel">
+  <h2>Recent Reservations</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Ref</th>
+        <th>Passenger</th>
+        <th>Train</th>
+        <th>Route</th>
+        <th>Class</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in recent_reservations %}
+      <tr>
+        <td>{{ r.booking_reference }}</td>
+        <td>{{ r.passenger_name }}</td>
+        <td>{{ r.train_number }}</td>
+        <td>{{ r.route }}</td>
+        <td>{{ r.seat_class }}</td>
+        <td><span class="badge {{ r.status }}">{{ r.status }}</span></td>
+        <td>
+          {% if r.status == 'confirmed' %}
+          <form method="POST" action="/staff/cancel/{{ r.id }}" style="display:inline;">
+            <button class="btn cancel-btn" type="submit" style="padding:5px 10px;font-size:12px;">Cancel</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" style="color:#94a3b8;">No reservations yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
