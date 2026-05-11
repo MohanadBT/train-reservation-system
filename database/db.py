@@ -10,7 +10,8 @@ import sqlite3
 import os
 
 # Path to the SQLite database file
-DB_PATH = os.path.join(os.path.dirname(__file__), "train_system.db")
+import os
+DB_PATH = os.environ.get("DB_PATH", os.path.join(os.path.dirname(__file__), "train_system.db"))
 
 
 def get_connection():
