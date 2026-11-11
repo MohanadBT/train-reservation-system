@@ -7,6 +7,7 @@ Calls auth_service, manages Flask session.
 
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from services import auth_service
+from security.login_guard import guard
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -31,13 +32,27 @@ def login_submit():
         flash("Please select a valid role.", "error")
         return redirect(url_for("auth.login_page"))
 
+    # SECURITY: brute-force protection - refuse while this username+IP is locked
+    key = guard.make_key(username, request.remote_addr)
+    wait = guard.seconds_locked(key)
+    if wait:
+        flash(f"Too many failed attempts. Try again in {wait // 60 + 1} minute(s).", "error")
+        return render_template("login.html"), 429
+
     success, error_msg, user = auth_service.login(username, password, role)
 
     if not success:
+        if guard.register_failure(key):
+            flash("Too many failed attempts. This account is locked for 15 minutes.", "error")
+            return render_template("login.html"), 429
         flash(error_msg, "error")
         return redirect(url_for("auth.login_page"))
 
-    # Store user info in session
+    guard.reset(key)
+
+    # SECURITY: start a fresh session on login (prevents session fixation)
+    session.clear()
+    session.permanent = True   # expires after 30 min (see security/hardening.py)
     session["user_id"] = user.id
     session["username"] = user.username
     session["full_name"] = user.full_name

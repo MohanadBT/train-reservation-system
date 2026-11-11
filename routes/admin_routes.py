@@ -9,6 +9,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from functools import wraps
 from services import reservation_service, auth_service
 from repositories import schedule_repository, passenger_repository, user_repository
+from security.validation import parse_int, parse_price
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -61,10 +62,14 @@ def add_schedule():
     price = request.form.get("ticket_price", 0)
     seats = request.form.get("available_seats", 0)
 
+    price_v, seats_v = parse_price(price), parse_int(seats)
+
     if not all([train_id, route, departure, arrival]):
         flash("All fields are required.", "error")
+    elif price_v is None or seats_v is None:
+        flash("Price and seats must be valid non-negative numbers.", "error")
     else:
-        schedule_repository.create_schedule(train_id, route, departure, arrival, float(price), int(seats))
+        schedule_repository.create_schedule(train_id, route, departure, arrival, price_v, seats_v)
         flash("Schedule added successfully.", "success")
 
     return redirect(url_for("admin.schedules"))
@@ -88,7 +93,12 @@ def edit_schedule(schedule_id):
     seats = request.form.get("available_seats", 0)
     status = request.form.get("status", "active")
 
-    schedule_repository.update_schedule(schedule_id, route, departure, arrival, float(price), int(seats), status)
+    price_v, seats_v = parse_price(price), parse_int(seats)
+    if price_v is None or seats_v is None or status not in ("active", "cancelled", "completed"):
+        flash("Invalid price, seats or status.", "error")
+        return redirect(url_for("admin.schedules"))
+
+    schedule_repository.update_schedule(schedule_id, route, departure, arrival, price_v, seats_v, status)
     flash("Schedule updated.", "success")
     return redirect(url_for("admin.schedules"))
 

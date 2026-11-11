@@ -50,6 +50,7 @@
     <section class="panel">
       <h2>Register New Passenger</h2>
       <form method="POST" action="/admin/passengers/add">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-grid">
           <div>
             <label>Full Name *</label>
@@ -104,6 +105,7 @@
             <td>{{ (p.created_at or '')[:10] }}</td>
             <td>
               <form method="POST" action="/admin/passengers/delete/{{ p.id }}" onsubmit="return confirm('Delete passenger {{ p.full_name }}?');">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button class="btn danger sm" type="submit">Delete</button>
               </form>
             </td>

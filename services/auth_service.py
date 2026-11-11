@@ -9,6 +9,7 @@ Never touches the database directly — uses user_repository.
 from werkzeug.security import check_password_hash, generate_password_hash
 from repositories import user_repository
 from models.entities import User
+from security.validation import validate_password_strength, validate_role
 
 
 def login(username: str, password: str, expected_role: str) -> tuple[bool, str, User | None]:
@@ -40,8 +41,11 @@ def login(username: str, password: str, expected_role: str) -> tuple[bool, str, 
 
 def create_staff_account(username, password, full_name, email, phone_number, role="staff") -> tuple[bool, str]:
     """Creates a new staff or admin account. Admin-only operation."""
-    if len(password) < 6:
-        return False, "Password must be at least 6 characters."
+    if not validate_role(role):
+        return False, "Invalid role."
+    ok, msg = validate_password_strength(password)
+    if not ok:
+        return False, msg
 
     existing = user_repository.find_by_username(username)
     if existing:
@@ -58,8 +62,9 @@ def update_password(user_id: int, old_password: str, new_password: str) -> tuple
         return False, "User not found."
     if not check_password_hash(user.password_hash, old_password):
         return False, "Current password is incorrect."
-    if len(new_password) < 6:
-        return False, "New password must be at least 6 characters."
+    ok, msg = validate_password_strength(new_password)
+    if not ok:
+        return False, msg
     hashed = generate_password_hash(new_password)
     # Direct update via repo — minimal business logic
     from database.db import get_connection

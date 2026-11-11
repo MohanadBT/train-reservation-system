@@ -75,6 +75,7 @@
 
     <!-- POST to Flask /login endpoint -->
     <form method="POST" action="/login">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <label for="role">Role</label>
       <select id="role" name="role" required>
         <option value="">Select role</option>

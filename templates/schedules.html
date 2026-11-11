@@ -51,6 +51,7 @@
     <section class="panel">
       <h2>Add New Schedule</h2>
       <form method="POST" action="/admin/schedules/add">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-grid">
           <div>
             <label>Train</label>
@@ -115,6 +116,7 @@
             <td style="display:flex;gap:6px;flex-wrap:wrap;">
               <!-- Quick delete -->
               <form method="POST" action="/admin/schedules/delete/{{ s.id }}" onsubmit="return confirm('Delete this schedule?');">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button class="btn danger sm" type="submit">Delete</button>
               </form>
             </td>

@@ -69,6 +69,7 @@
             <td>
               {% if r.status == 'confirmed' %}
               <form method="POST" action="/staff/cancel/{{ r.id }}">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button class="btn" type="submit">Cancel</button>
               </form>
               {% endif %}

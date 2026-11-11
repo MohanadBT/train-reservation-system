@@ -20,8 +20,21 @@ from database.db import init_db
 app = Flask(__name__)
 
 # Secret key is required for Flask sessions (stores login state).
-# In production, use an environment variable for this!
-app.secret_key = os.environ.get("SECRET_KEY", "train-system-dev-secret-2025")
+# SECURITY: no hard-coded fallback any more. If SECRET_KEY is not set, a random
+# key is generated for this run (sessions end when the server restarts).
+_secret = os.environ.get("SECRET_KEY")
+if not _secret:
+    import secrets
+    _secret = secrets.token_hex(32)
+    print("[SECURITY] SECRET_KEY not set - using a random key for this run.")
+app.secret_key = _secret
+
+# ── Security layers (Phase 2) ─────────────────────────────────────────────────
+from security.hardening import init_hardening
+from security.csrf import init_csrf
+
+init_hardening(app)   # secure cookies + HTTP security headers
+init_csrf(app)        # CSRF token check on every POST
 
 # ── Register route blueprints ──────────────────────────────────────────────────
 # Each blueprint handles a group of related URLs.
@@ -46,4 +59,4 @@ if __name__ == "__main__":
     print("  Running at: http://127.0.0.1:5000")
     print("="*55 + "\n")
     port = int(os.environ.get("PORT", 5000))
-app.run(debug=False, host="0.0.0.0", port=port)
+    app.run(debug=False, host="0.0.0.0", port=port)

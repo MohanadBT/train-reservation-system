@@ -63,6 +63,7 @@
 <section class="panel">
   <h2>Quick Reservation Form</h2>
   <form method="POST" action="/staff/reserve">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="form-grid">
       <div>
         <label for="passenger_id">Passenger</label>
@@ -129,6 +130,7 @@
         <td>
           {% if r.status == 'confirmed' %}
           <form method="POST" action="/staff/cancel/{{ r.id }}" style="display:inline;">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button class="btn cancel-btn" type="submit" style="padding:5px 10px;font-size:12px;">Cancel</button>
           </form>
           {% endif %}

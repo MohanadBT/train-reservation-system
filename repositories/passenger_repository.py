@@ -6,6 +6,7 @@ Data Access Layer - handles all DB operations for passengers.
 
 from database.db import get_connection
 from models.entities import Passenger
+from security.encryption import encrypt_value, decrypt_value
 
 
 def get_all() -> list[Passenger]:
@@ -38,7 +39,7 @@ def create(full_name, id_number, email, phone_number) -> int:
     conn = get_connection()
     cursor = conn.execute(
         "INSERT INTO passengers (full_name, id_number, email, phone_number) VALUES (?,?,?,?)",
-        (full_name, id_number, email, phone_number)
+        (full_name, encrypt_value(id_number), email, phone_number)
     )
     conn.commit()
     new_id = cursor.lastrowid
@@ -50,7 +51,7 @@ def update(passenger_id, full_name, id_number, email, phone_number):
     conn = get_connection()
     conn.execute(
         "UPDATE passengers SET full_name=?, id_number=?, email=?, phone_number=? WHERE id=?",
-        (full_name, id_number, email, phone_number, passenger_id)
+        (full_name, encrypt_value(id_number), email, phone_number, passenger_id)
     )
     conn.commit()
     conn.close()
@@ -67,7 +68,7 @@ def _row_to_passenger(row) -> Passenger:
     return Passenger(
         id=row["id"],
         full_name=row["full_name"],
-        id_number=row["id_number"],
+        id_number=decrypt_value(row["id_number"]),  # stored encrypted
         email=row["email"],
         phone_number=row["phone_number"],
         created_at=row["created_at"],

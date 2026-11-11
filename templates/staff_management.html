@@ -49,6 +49,7 @@
     <section class="panel">
       <h2>Create New Account</h2>
       <form method="POST" action="/admin/staff/add">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-grid">
           <div>
             <label>Username *</label>
@@ -56,7 +57,7 @@
           </div>
           <div>
             <label>Password *</label>
-            <input type="password" name="password" placeholder="Min. 6 characters" required />
+            <input type="password" name="password" placeholder="Min. 8 chars, letter + digit" required />
           </div>
           <div>
             <label>Full Name *</label>

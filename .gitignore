@@ -40,3 +40,7 @@ Thumbs.db
 *.spec
 dist/
 build/
+
+# Encryption key - NEVER commit
+instance/
+*.key
